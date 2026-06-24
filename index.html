@@ -100,6 +100,7 @@
   .b-pending{background:#fef9c3;color:#713f12;}
   .b-approved{background:var(--green-light);color:var(--green-dark);}
   .b-cancelled{background:#fee2e2;color:#7f1d1d;}
+  .b-discharged{background:#e0f2fe;color:#0369a1;}
   .act{display:flex;gap:5px;flex-wrap:wrap;}
 
   /* TABS */
@@ -362,6 +363,7 @@
         <select id="editStatus">
           <option value="pending">รอดำเนินการ</option>
           <option value="approved">อนุมัติแล้ว</option>
+          <option value="discharged">จำหน่ายแล้ว</option>
           <option value="cancelled">ยกเลิกแล้ว</option>
         </select>
       </div>
@@ -634,6 +636,18 @@ function sendMophNotify(message){
   }
 }
 
+// ===== GENERATE BK ID =====
+async function generateBkId(){
+  const counterRef = doc(db,'meta','bookingCounter');
+  let num = 1;
+  try{
+    const snap = await getDoc(counterRef);
+    if(snap.exists()) num = (snap.data().count || 0) + 1;
+    await setDoc(counterRef, {count: num});
+  }catch(e){ console.warn("counter error:", e); }
+  return "BK-" + String(num).padStart(4,'0');
+}
+
 // ===== SUBMIT BOOKING (Firestore) =====
 async function submitRequest(){
   const name=$('uName').value.trim(),phone=$('uPhone').value.trim(),ward=$('uWard').value,date=$('uDate').value,note=$('uNote').value.trim();
@@ -693,7 +707,7 @@ function renderQueue(){
   if(!bookings.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px">ยังไม่มีรายการ</td></tr>';return;}
   tbody.innerHTML=bookings.map((b)=>`
     <tr style="${b.status==='cancelled'?'opacity:.5':''}">
-      <td style="font-size:11px;color:var(--muted)">${b.firestoreId.slice(0,8)}</td>
+      <td style="font-size:12px;font-weight:600;color:#0369a1">${b.bkId||b.firestoreId.slice(0,8)}</td>
       <td><b>${b.patientName}</b></td>
       <td>${b.phone}</td>
       <td><span style="background:var(--purple-light);color:var(--purple-dark);padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600">${b.ward}</span></td>
@@ -701,7 +715,7 @@ function renderQueue(){
       <td style="font-size:12px;color:var(--muted)">${b.date||'-'}</td>
       <td>${b.assignedRoom?`<b style="color:var(--green-dark)">${b.assignedRoom}</b>`:'<span style="color:var(--muted);font-size:12px">ยังไม่จัด</span>'}</td>
       <td style="font-size:11px;color:var(--muted)">${b.submittedAt?.toDate?b.submittedAt.toDate().toLocaleString('th-TH'):'-'}</td>
-      <td><span class="badge b-${b.status}">${b.status==='pending'?'รอดำเนินการ':b.status==='approved'?'อนุมัติแล้ว':'ยกเลิกแล้ว'}</span></td>
+      <td><span class="badge b-${b.status}">${b.status==='pending'?'รอดำเนินการ':b.status==='approved'?'อนุมัติแล้ว':b.status==='discharged'?'จำหน่ายแล้ว':'ยกเลิกแล้ว'}</span></td>
       <td>
         <div class="act">
           <button class="btn btn-warning btn-sm" onclick="openEdit('${b.firestoreId}')" title="แก้ไข">✏️</button>
@@ -717,7 +731,7 @@ function renderQueue(){
 function openEdit(fid){
   editingId=fid;
   const b=bookings.find(x=>x.firestoreId===fid);
-  $('editModalId').textContent=`รหัส: ${fid.slice(0,8)}`;
+  const bk=bookings.find(x=>x.firestoreId===fid); $('editModalId').textContent=`รหัส: ${bk?.bkId||fid.slice(0,8)}`;
   $('editName').value=b.patientName;
   $('editPhone').value=b.phone;
   $('editWard').value=b.ward;
