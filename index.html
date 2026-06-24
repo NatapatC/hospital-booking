@@ -617,6 +617,23 @@ function renderWardBlock(wk,isAdm){
     </div>${inner}</div>`;
 }
 
+// ===== MOPH NOTIFY =====
+const MOPH_WEBHOOK = "https://script.google.com/macros/s/AKfycbzcJTjviX7ddyQfFAuggcTvW4FoQiNNvUI-uSocgy-VYIt-OX08CzXixGB1__dQHedp/exec";
+
+async function sendMophNotify(message){
+  try{
+    await fetch(MOPH_WEBHOOK,{
+      method:"POST",
+      mode:"no-cors",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({message})
+    });
+    console.log("✅ ส่ง MOPH Notify แล้ว:", message);
+  }catch(e){
+    console.warn("⚠️ MOPH Notify ส่งไม่สำเร็จ:", e);
+  }
+}
+
 // ===== SUBMIT BOOKING (Firestore) =====
 async function submitRequest(){
   const name=$('uName').value.trim(),phone=$('uPhone').value.trim(),ward=$('uWard').value,date=$('uDate').value,note=$('uNote').value.trim();
@@ -629,6 +646,18 @@ async function submitRequest(){
       submittedAt:serverTimestamp()
     });
     toast(`✅ ส่งคำขอสำเร็จ! คิวของท่านคือ #${queueNum} เจ้าหน้าที่จะติดต่อกลับที่ ${phone}`);
+    // 🔔 แจ้งเตือน Admin
+    sendMophNotify(
+      `🔔 มีคำขอจองห้องพิเศษใหม่!\n` +
+      `👤 ผู้ป่วย: ${name}\n` +
+      `📞 เบอร์: ${phone}\n` +
+      `🏥 Ward: ${ward}\n` +
+      `📋 คิวที่: #${queueNum}\n` +
+      `📅 วันที่ต้องการ: ${date||'ไม่ระบุ'}\n` +
+      `📝 หมายเหตุ: ${note||'-'}\n` +
+      `─────────────────\n` +
+      `โรงพยาบาลโกสุมพิสัย`
+    );
     $('uName').value='';$('uPhone').value='';$('uWard').value='';$('uNote').value='';
     showUserHome();
   }catch(e){toast('❌ เกิดข้อผิดพลาด: '+e.message);}
@@ -753,6 +782,17 @@ async function confirmAssign(){
     await updateDoc(doc(db,'bookings',assignId),{assignedRoom:assignRoom,status:'approved',adminNote:$('assignNote').value});
     closeModal('assignModal');
     toast(`✅ จัดห้อง ${assignRoom} ให้ ${b.patientName} แล้ว`);
+    // 🔔 แจ้งเตือน Admin ว่าอนุมัติแล้ว
+    sendMophNotify(
+      `✅ อนุมัติการจองห้องพิเศษแล้ว!\n` +
+      `👤 ผู้ป่วย: ${b.patientName}\n` +
+      `📞 เบอร์: ${b.phone}\n` +
+      `🛏️ ห้องที่จัดให้: ${assignRoom}\n` +
+      `🏥 Ward: ${b.ward}\n` +
+      `📋 คิวที่: #${b.queueNum||'-'}\n` +
+      `─────────────────\n` +
+      `โรงพยาบาลโกสุมพิสัย`
+    );
   }catch(e){toast('❌ '+e.message);}
 }
 window.confirmAssign=confirmAssign;
