@@ -221,7 +221,7 @@
             <label>Ward ที่ต้องการ <span class="required">*</span></label>
             <select id="uWard">
               <option value="">-- เลือก Ward --</option>
-              <option value="VIP">Ward VIP</option>
+              <option value="VIP">Ward ศิริโกสุม</option>
               <option value="สงฆ์">Ward สงฆ์</option>
               <option value="เด็ก">Ward เด็ก</option>
               <option value="หญิง">Ward หญิง</option>
@@ -341,7 +341,7 @@
       <div class="form-group">
         <label>Ward ที่ต้องการ</label>
         <select id="editWard">
-          <option value="VIP">Ward VIP</option>
+          <option value="VIP">Ward ศิริโกสุม</option>
           <option value="สงฆ์">Ward สงฆ์</option>
           <option value="เด็ก">Ward เด็ก</option>
           <option value="หญิง">Ward หญิง</option>
@@ -438,7 +438,7 @@ const db = getFirestore(app);
 
 // ===== WARD STRUCTURE (local - layout ไม่เปลี่ยน) =====
 const WARD_DEF = {
-  VIP:{label:"Ward VIP",icon:"⭐",subWards:null,prefix:"VIP",count:12,type:"ห้อง VIP"},
+  VIP:{label:"Ward ศิริโกสุม",icon:"⭐",subWards:null,prefix:"VIP",count:12,type:"ห้อง ศิริโกสุม"},
   MONK:{label:"Ward สงฆ์และเด็ก",icon:"🙏",subWards:[
     {label:"เด็ก",wardKey:"เด็ก",prefix:"เด็ก",count:2,type:"ห้องเด็ก"},
     {label:"สงฆ์",wardKey:"สงฆ์",prefix:"สงฆ์",count:8,type:"ห้องสงฆ์"}
