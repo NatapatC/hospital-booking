@@ -622,13 +622,15 @@ const MOPH_WEBHOOK = "https://script.google.com/macros/s/AKfycbzcJTjviX7ddyQfFAu
 
 function sendMophNotify(message){
   try{
-    // ใช้ img tag เพื่อหลีกเลี่ยง CORS (GET request)
+    // ใช้ script tag injection ผ่าน CORS ได้แน่นอน
     const encoded = encodeURIComponent(message);
-    const img = new Image();
-    img.src = MOPH_WEBHOOK + "?message=" + encoded;
-    console.log("✅ ส่ง MOPH Notify:", message);
+    const script = document.createElement("script");
+    script.src = MOPH_WEBHOOK + "?message=" + encoded + "&t=" + Date.now();
+    script.onload = () => { script.remove(); console.log("✅ ส่ง MOPH Notify สำเร็จ"); };
+    script.onerror = () => { script.remove(); console.warn("⚠️ script tag ส่งไม่สำเร็จ"); };
+    document.head.appendChild(script);
   }catch(e){
-    console.warn("⚠️ MOPH Notify ส่งไม่สำเร็จ:", e);
+    console.warn("⚠️ MOPH Notify error:", e);
   }
 }
 
