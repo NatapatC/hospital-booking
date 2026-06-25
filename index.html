@@ -150,6 +150,8 @@
   .toast{position:fixed;bottom:24px;right:24px;background:#111827;color:#fff;padding:12px 20px;border-radius:var(--r);font-size:13px;z-index:999;opacity:0;transition:.3s;pointer-events:none;max-width:340px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
   .toast.show{opacity:1;}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -274,6 +276,7 @@
     <div class="tabs">
       <div class="tab active" onclick="switchTab('queue',this)">📋 คิวการจอง <span id="pendingBadge" style="background:#fef9c3;color:#713f12;font-size:11px;padding:2px 7px;border-radius:20px;margin-left:4px;"></span></div>
       <div class="tab" onclick="switchTab('rooms',this)">🏠 จัดการห้อง</div>
+      <div class="tab" onclick="switchTab('report',this)">📊 รายงานการใช้ห้องพิเศษ</div>
     </div>
     <div class="stats" id="statsGrid"></div>
 
@@ -300,6 +303,81 @@
     <!-- ROOMS TAB -->
     <div id="tabRooms" class="hidden">
       <div id="adminRooms"></div>
+    </div>
+
+    <!-- REPORT TAB -->
+    <div id="tabReport" class="hidden">
+      <!-- Filter Bar -->
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:16px 18px;margin-bottom:1.2rem;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">จากวันที่</label>
+          <input type="date" id="rptFrom" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;"/>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">ถึงวันที่</label>
+          <input type="date" id="rptTo" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;"/>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Ward</label>
+          <select id="rptWard" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
+            <option value="">ทุก Ward</option>
+            <option value="VIP">Ward ศิริโกสุม</option>
+            <option value="สงฆ์">Ward สงฆ์</option>
+            <option value="เด็ก">Ward เด็ก</option>
+            <option value="หญิง">Ward หญิง</option>
+            <option value="ชาย">Ward ชาย</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">สถานะ</label>
+          <select id="rptStatus" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
+            <option value="">ทุกสถานะ</option>
+            <option value="approved">อนุมัติแล้ว</option>
+            <option value="discharged">จำหน่ายแล้ว</option>
+            <option value="cancelled">ยกเลิกแล้ว</option>
+            <option value="pending">รอดำเนินการ</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="renderReport()" style="padding:8px 18px;">🔍 ค้นหา</button>
+        <button class="btn btn-outline" onclick="resetReport()" style="padding:8px 18px;">↺ รีเซ็ต</button>
+        <div style="margin-left:auto;display:flex;gap:8px;">
+          <button class="btn btn-green" onclick="exportExcel()" style="padding:8px 18px;">📥 Export Excel</button>
+          <button class="btn btn-danger" onclick="exportPDF()" style="padding:8px 18px;">📄 Export PDF</button>
+        </div>
+      </div>
+
+      <!-- Summary Cards -->
+      <div id="rptSummary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:1.2rem;"></div>
+
+      <!-- Chart + Ward Stats -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.2rem;">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:18px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:14px;">📈 สถิติรายเดือน</div>
+          <canvas id="rptChart" height="200"></canvas>
+        </div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:18px;">
+          <div style="font-size:14px;font-weight:700;margin-bottom:14px;">🏥 สถิติแยกตาม Ward</div>
+          <div id="wardStats"></div>
+        </div>
+      </div>
+
+      <!-- Report Table -->
+      <div class="queue-section">
+        <div class="sec-hdr">
+          <div class="sec-title">📋 รายชื่อผู้ป่วยเข้าพัก-จำหน่าย</div>
+          <div id="rptCount" style="font-size:13px;color:var(--muted);"></div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>รหัส</th><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th>
+              <th>Ward</th><th>ห้องที่จัดให้</th><th>คิวที่</th>
+              <th>วันที่ต้องการ</th><th>วันที่ส่งคำขอ</th><th>สถานะ</th>
+            </tr></thead>
+            <tbody id="rptBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
   </main>
 </div>
@@ -857,11 +935,212 @@ function switchTab(tab,el){
   el.classList.add('active');
   $('tabQueue').classList.toggle('hidden',tab!=='queue');
   $('tabRooms').classList.toggle('hidden',tab!=='rooms');
+  $('tabReport').classList.toggle('hidden',tab!=='report');
+  if(tab==='report'){
+    // set default date range (เดือนนี้)
+    const now=new Date();
+    const firstDay=new Date(now.getFullYear(),now.getMonth(),1).toISOString().split('T')[0];
+    const lastDay=new Date(now.getFullYear(),now.getMonth()+1,0).toISOString().split('T')[0];
+    if(!$('rptFrom').value) $('rptFrom').value=firstDay;
+    if(!$('rptTo').value) $('rptTo').value=lastDay;
+    renderReport();
+  }
 }
 window.switchTab=switchTab;
 
 // ===== LOGOUT =====
 document.querySelector('#pgAdmin nav button')?.addEventListener('click',doLogout);
+
+// ===== REPORT =====
+let rptChart = null;
+
+function getFilteredBookings(){
+  const from = document.getElementById('rptFrom')?.value;
+  const to = document.getElementById('rptTo')?.value;
+  const ward = document.getElementById('rptWard')?.value;
+  const status = document.getElementById('rptStatus')?.value;
+
+  return bookings.filter(b => {
+    const subDate = b.submittedAt?.toDate ? b.submittedAt.toDate() : new Date(b.submittedAt);
+    if(from && subDate < new Date(from)) return false;
+    if(to && subDate > new Date(to + 'T23:59:59')) return false;
+    if(ward && b.ward !== ward) return false;
+    if(status && b.status !== status) return false;
+    return true;
+  });
+}
+
+function renderReport(){
+  const data = getFilteredBookings();
+  renderRptSummary(data);
+  renderRptTable(data);
+  renderRptChart(data);
+  renderWardStats(data);
+}
+
+function resetReport(){
+  document.getElementById('rptFrom').value='';
+  document.getElementById('rptTo').value='';
+  document.getElementById('rptWard').value='';
+  document.getElementById('rptStatus').value='';
+  renderReport();
+}
+window.resetReport=resetReport;
+window.renderReport=renderReport;
+
+function renderRptSummary(data){
+  const total=data.length;
+  const approved=data.filter(b=>b.status==='approved').length;
+  const discharged=data.filter(b=>b.status==='discharged').length;
+  const cancelled=data.filter(b=>b.status==='cancelled').length;
+  const pending=data.filter(b=>b.status==='pending').length;
+  document.getElementById('rptSummary').innerHTML=`
+    <div class="stat"><div class="stat-lbl">คำขอทั้งหมด</div><div class="stat-val" style="color:#374151">${total}</div></div>
+    <div class="stat"><div class="stat-lbl">รอดำเนินการ</div><div class="stat-val" style="color:var(--blue)">${pending}</div></div>
+    <div class="stat"><div class="stat-lbl">อนุมัติแล้ว</div><div class="stat-val" style="color:var(--green)">${approved}</div></div>
+    <div class="stat"><div class="stat-lbl">จำหน่ายแล้ว</div><div class="stat-val" style="color:#0369a1">${discharged}</div></div>
+    <div class="stat"><div class="stat-lbl">ยกเลิก</div><div class="stat-val" style="color:#ef4444">${cancelled}</div></div>`;
+}
+
+function renderRptTable(data){
+  const tbody=document.getElementById('rptBody');
+  document.getElementById('rptCount').textContent=`พบ ${data.length} รายการ`;
+  if(!data.length){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:24px">ไม่พบข้อมูล</td></tr>';return;}
+  const statusLabel={pending:'รอดำเนินการ',approved:'อนุมัติแล้ว',discharged:'จำหน่ายแล้ว',cancelled:'ยกเลิกแล้ว'};
+  const statusBadge={pending:'b-pending',approved:'b-approved',discharged:'','cancelled':'b-cancelled'};
+  tbody.innerHTML=data.map(b=>`
+    <tr>
+      <td style="font-size:12px;font-weight:600;color:#0369a1">${b.bkId||b.firestoreId?.slice(0,8)||'-'}</td>
+      <td><b>${b.patientName}</b></td>
+      <td>${b.phone}</td>
+      <td><span style="background:var(--purple-light);color:var(--purple-dark);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">${b.ward}</span></td>
+      <td>${b.assignedRoom?`<b style="color:var(--green-dark)">${b.assignedRoom}</b>`:'<span style="color:var(--muted);font-size:12px">-</span>'}</td>
+      <td style="text-align:center"><span style="background:#f0f9ff;color:#0369a1;padding:2px 8px;border-radius:20px;font-size:12px;font-weight:700">#${b.queueNum||'-'}</span></td>
+      <td style="font-size:12px;color:var(--muted)">${b.date||'-'}</td>
+      <td style="font-size:11px;color:var(--muted)">${b.submittedAt?.toDate?b.submittedAt.toDate().toLocaleString('th-TH'):'-'}</td>
+      <td><span class="badge ${statusBadge[b.status]||''}" style="${b.status==='discharged'?'background:#e0f2fe;color:#0369a1':''}">${statusLabel[b.status]||b.status}</span></td>
+    </tr>`).join('');
+}
+
+function renderRptChart(data){
+  const ctx=document.getElementById('rptChart');
+  if(!ctx) return;
+  // นับตามเดือน
+  const monthly={};
+  data.forEach(b=>{
+    const d=b.submittedAt?.toDate?b.submittedAt.toDate():new Date();
+    const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if(!monthly[key]) monthly[key]={approved:0,discharged:0,cancelled:0,pending:0};
+    monthly[key][b.status]=(monthly[key][b.status]||0)+1;
+  });
+  const labels=Object.keys(monthly).sort();
+  if(rptChart) rptChart.destroy();
+  rptChart=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'อนุมัติแล้ว',data:labels.map(l=>monthly[l].approved||0),backgroundColor:'#16a34a88'},
+        {label:'จำหน่ายแล้ว',data:labels.map(l=>monthly[l].discharged||0),backgroundColor:'#0ea5e988'},
+        {label:'รอดำเนินการ',data:labels.map(l=>monthly[l].pending||0),backgroundColor:'#f59e0b88'},
+        {label:'ยกเลิก',data:labels.map(l=>monthly[l].cancelled||0),backgroundColor:'#ef444488'},
+      ]
+    },
+    options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true,ticks:{stepSize:1}}}}
+  });
+}
+
+function renderWardStats(data){
+  const wards={};
+  data.forEach(b=>{
+    if(!wards[b.ward]) wards[b.ward]={total:0,approved:0,discharged:0};
+    wards[b.ward].total++;
+    if(b.status==='approved'||b.status==='discharged') wards[b.ward].approved++;
+    if(b.status==='discharged') wards[b.ward].discharged++;
+  });
+  const wardColors={'VIP':'#7c3aed','สงฆ์':'#0369a1','เด็ก':'#db2777','หญิง':'#db2777','ชาย':'#1d4ed8'};
+  const html=Object.entries(wards).map(([ward,s])=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="background:var(--purple-light);color:var(--purple-dark);padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600">${ward==='VIP'?'ศิริโกสุม':ward}</span>
+      </div>
+      <div style="display:flex;gap:10px;font-size:12px;">
+        <span style="color:var(--muted)">ทั้งหมด <b style="color:var(--text)">${s.total}</b></span>
+        <span style="color:var(--green)">จัดแล้ว <b>${s.approved}</b></span>
+        <span style="color:#0369a1">จำหน่าย <b>${s.discharged}</b></span>
+      </div>
+    </div>`).join('');
+  document.getElementById('wardStats').innerHTML=html||'<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center">ไม่มีข้อมูล</div>';
+}
+
+// Export Excel
+function exportExcel(){
+  const data=getFilteredBookings();
+  if(!data.length){toast('⚠️ ไม่มีข้อมูลสำหรับ Export');return;}
+  const rows=data.map(b=>({
+    'รหัส': b.bkId||b.firestoreId?.slice(0,8)||'-',
+    'ชื่อ-นามสกุล': b.patientName,
+    'เบอร์โทร': b.phone,
+    'Ward': b.ward==='VIP'?'ศิริโกสุม':b.ward,
+    'ห้องที่จัดให้': b.assignedRoom||'-',
+    'คิวที่': b.queueNum||'-',
+    'วันที่ต้องการ': b.date||'-',
+    'วันที่ส่งคำขอ': b.submittedAt?.toDate?b.submittedAt.toDate().toLocaleString('th-TH'):'-',
+    'หมายเหตุ': b.note||'-',
+    'หมายเหตุ Admin': b.adminNote||'-',
+    'สถานะ': {pending:'รอดำเนินการ',approved:'อนุมัติแล้ว',discharged:'จำหน่ายแล้ว',cancelled:'ยกเลิกแล้ว'}[b.status]||b.status,
+  }));
+  const ws=XLSX.utils.json_to_sheet(rows);
+  ws['!cols']=[{wch:12},{wch:24},{wch:14},{wch:14},{wch:12},{wch:8},{wch:14},{wch:20},{wch:20},{wch:20},{wch:14}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,'รายงาน',ws);
+  const date=new Date().toLocaleDateString('th-TH').replace(/\//g,'-');
+  XLSX.writeFile(wb,`รายงานห้องพิเศษ_${date}.xlsx`);
+  toast('✅ Export Excel สำเร็จ!');
+}
+window.exportExcel=exportExcel;
+
+// Export PDF (print)
+function exportPDF(){
+  const data=getFilteredBookings();
+  if(!data.length){toast('⚠️ ไม่มีข้อมูลสำหรับ Export');return;}
+  const statusLabel={pending:'รอดำเนินการ',approved:'อนุมัติแล้ว',discharged:'จำหน่ายแล้ว',cancelled:'ยกเลิกแล้ว'};
+  const date=new Date().toLocaleDateString('th-TH');
+  const rows=data.map(b=>`
+    <tr>
+      <td>${b.bkId||b.firestoreId?.slice(0,8)||'-'}</td>
+      <td>${b.patientName}</td>
+      <td>${b.phone}</td>
+      <td>${b.ward==='VIP'?'ศิริโกสุม':b.ward}</td>
+      <td>${b.assignedRoom||'-'}</td>
+      <td>${b.date||'-'}</td>
+      <td>${statusLabel[b.status]||b.status}</td>
+    </tr>`).join('');
+  const win=window.open('','_blank');
+  win.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8"><title>รายงานห้องพิเศษ</title>
+    <style>
+      body{font-family:'TH Sarabun New',sans-serif;font-size:14px;padding:20px;color:#111;}
+      h2{text-align:center;color:#1d4ed8;margin-bottom:4px;}
+      p{text-align:center;color:#6b7280;margin-bottom:16px;}
+      table{width:100%;border-collapse:collapse;}
+      th{background:#1d4ed8;color:#fff;padding:8px;font-size:13px;text-align:left;}
+      td{padding:7px 8px;border-bottom:1px solid #e5e7eb;font-size:13px;}
+      tr:nth-child(even){background:#f9fafb;}
+      @media print{body{padding:0;}}
+    </style>
+  </head><body>
+    <h2>รายงานการใช้ห้องพิเศษ โรงพยาบาลโกสุมพิสัย</h2>
+    <p>วันที่พิมพ์: ${date} | จำนวน ${data.length} รายการ</p>
+    <table>
+      <thead><tr><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th><th>Ward</th><th>ห้อง</th><th>วันที่ต้องการ</th><th>สถานะ</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`);
+  win.document.close();
+}
+window.exportPDF=exportPDF;
 
 // ===== INIT =====
 (async()=>{
