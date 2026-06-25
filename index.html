@@ -638,14 +638,25 @@ function sendMophNotify(message){
 
 // ===== GENERATE BK ID =====
 async function generateBkId(){
-  const counterRef = doc(db,'meta','bookingCounter');
-  let num = 1;
   try{
-    const snap = await getDoc(counterRef);
-    if(snap.exists()) num = (snap.data().count || 0) + 1;
-    await setDoc(counterRef, {count: num});
-  }catch(e){ console.warn("counter error:", e); }
-  return "BK-" + String(num).padStart(4,'0');
+    // นับจาก bookings ทั้งหมดใน Firestore
+    const { getDocs } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const snap = await getDocs(collection(db,'bookings'));
+    // กรองเฉพาะที่เป็น BK- แล้วหาเลขสูงสุด
+    let maxNum = 0;
+    snap.forEach(d => {
+      const bid = d.id;
+      if(bid.startsWith('BK-')){
+        const n = parseInt(bid.replace('BK-','')) || 0;
+        if(n > maxNum) maxNum = n;
+      }
+    });
+    const num = maxNum + 1;
+    return "BK-" + String(num).padStart(4,'0');
+  }catch(e){
+    // fallback: ใช้ timestamp
+    return "BK-" + Date.now().toString().slice(-4);
+  }
 }
 
 // ===== SUBMIT BOOKING (Firestore) =====
