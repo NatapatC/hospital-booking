@@ -195,8 +195,8 @@
       <button class="btn btn-green btn-lg" onclick="showBookingForm()" style="width:100%;justify-content:center;margin-bottom:16px;">
         🛏️ จองห้องพิเศษ
       </button>
-      <button class="btn btn-outline" onclick="showRoomStatus()" style="width:100%;justify-content:center;padding:10px;">
-        📊 ดูสถานะห้องพิเศษ
+      <button class="btn btn-outline" onclick="showRoomDetail()" style="width:100%;justify-content:center;padding:10px;">
+        🏠 ดูรายละเอียดห้องพิเศษ
       </button>
     </div>
   </div>
@@ -220,24 +220,33 @@
         </div>
         <div class="form-row">
           <div class="form-group">
-            <label>Ward ที่ต้องการ <span class="required">*</span></label>
+            <label>ประเภทห้องที่ต้องการ <span class="required">*</span></label>
             <select id="uWard">
-              <option value="">-- เลือก Ward --</option>
-              <option value="VIP">Ward ศิริโกสุม</option>
-              <option value="สงฆ์">Ward สงฆ์</option>
-              <option value="เด็ก">Ward เด็ก</option>
-              <option value="หญิง">Ward หญิง</option>
-              <option value="ชาย">Ward ชาย</option>
+              <option value="">-- เลือกประเภทห้อง --</option>
+              <option value="Deluxe">🏨 Deluxe Room — 2,500 บาท/คืน</option>
+              <option value="Superior">⭐ Superior Room — 2,500 บาท/คืน</option>
+              <option value="Standard">🛏️ Standard Room — 1,800 บาท/คืน</option>
+              <option value="Ward">🏥 Ward Room — 1,000 บาท/คืน</option>
             </select>
           </div>
+          <div class="form-group">
+            <label>สถานะผู้ป่วย <span class="required">*</span></label>
+            <select id="uPatientStatus">
+              <option value="">-- เลือกสถานะ --</option>
+              <option value="นอนรักษาอยู่ รพ.">🏥 นอนรักษาอยู่ รพ.</option>
+              <option value="อยู่ที่บ้าน">🏠 อยู่ที่บ้าน</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label>วันที่ต้องการเข้าพัก</label>
             <input id="uDate" type="date"/>
           </div>
-        </div>
-        <div class="form-group">
-          <label>หมายเหตุ / ความต้องการพิเศษ</label>
-          <textarea id="uNote" placeholder="เช่น ต้องการห้องชั้น 1, แพ้ยา..."></textarea>
+          <div class="form-group">
+            <label>หมายเหตุ / ความต้องการพิเศษ</label>
+            <input id="uNote" placeholder="เช่น แพ้ยา, ต้องการห้องชั้น 1..."/>
+          </div>
         </div>
         <button class="btn btn-green" style="width:100%;padding:12px;font-size:15px" onclick="submitRequest()">✅ ส่งคำขอจองห้อง</button>
       </div>
@@ -256,6 +265,162 @@
         <div class="leg"><div class="dot" style="background:var(--purple)"></div>จองแล้ว</div>
       </div>
       <div id="userRooms"></div>
+    </main>
+  </div>
+
+  <!-- หน้ารายละเอียดห้องพิเศษ -->
+  <div id="userRoomDetail" class="hidden">
+    <nav style="background:#fff;border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;">
+      <div class="brand">
+        <div class="logo">🏥</div>
+        <div><h1>รายละเอียดห้องพิเศษ</h1><p>โรงพยาบาลโกสุมพิสัย</p></div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="showUserHome()">← กลับหน้าหลัก</button>
+    </nav>
+    <main style="max-width:1000px;margin:0 auto;padding:1.5rem;">
+
+      <!-- Hero -->
+      <div style="text-align:center;margin-bottom:2rem;">
+        <h2 style="font-size:24px;font-weight:700;color:#1d4ed8;margin-bottom:8px;">ห้องพิเศษโรงพยาบาลโกสุมพิสัย</h2>
+        <p style="color:var(--muted);font-size:14px;">เลือกประเภทห้องที่เหมาะสมกับความต้องการของท่าน</p>
+      </div>
+
+      <!-- Room Cards Grid -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:1.5rem;margin-bottom:2rem;">
+
+        <!-- DELUXE ROOM -->
+        <div style="background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.07);transition:.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 32px rgba(0,0,0,.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.07)'">
+          <div style="position:relative;">
+            <img src="https://natapatc.github.io/hospital-booking/Duluxe.jpg" alt="Deluxe Room" style="width:100%;height:220px;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+            <div style="display:none;width:100%;height:220px;background:linear-gradient(135deg,#4f46e5,#7c3aed);align-items:center;justify-content:center;font-size:64px;">🛏️</div>
+            <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.6);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">DELUXE</div>
+          </div>
+          <div style="padding:18px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <h3 style="font-size:18px;font-weight:700;color:#1e293b;">Deluxe Room</h3>
+              <span style="background:#fef3c7;color:#92400e;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700;">2,500 บาท/คืน</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:12px;">
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ขนาดห้อง 64 ตร.ม.</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ แยกโซนผู้ป่วย/ญาติ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดโซฟาปรับเอนนอน</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ เครื่องปรับอากาศ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ โทรทัศน์/wifi/ดาวเทียม</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เย็น + พัดลม</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ไมโครเวฟ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ เครื่องทำน้ำอุ่น</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดโต๊ะรับประทานอาหาร</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยชามเซรามิก</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยกาแฟ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เสื้อผ้าขนาดใหญ่</div>
+            </div>
+            <button class="btn btn-green" onclick="showBookingForm()" style="width:100%;justify-content:center;padding:10px;">🛏️ จองห้องนี้</button>
+          </div>
+        </div>
+
+        <!-- SUPERIOR ROOM -->
+        <div style="background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.07);transition:.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 32px rgba(0,0,0,.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.07)'">
+          <div style="position:relative;">
+            <img src="https://natapatc.github.io/hospital-booking/Superior.jpg" alt="Superior Room" style="width:100%;height:220px;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+            <div style="display:none;width:100%;height:220px;background:linear-gradient(135deg,#0ea5e9,#0284c7);align-items:center;justify-content:center;font-size:64px;">🛏️</div>
+            <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.6);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">SUPERIOR</div>
+          </div>
+          <div style="padding:18px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <h3 style="font-size:18px;font-weight:700;color:#1e293b;">Superior Room</h3>
+              <span style="background:#dbeafe;color:#1e40af;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700;">2,500 บาท/คืน</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:12px;">
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ขนาดห้อง 64 ตร.ม.</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ แยกโซนห้องแต่งตัว</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดโซฟาพร้อมโต๊ะกลาง</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ เครื่องปรับอากาศ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ โทรทัศน์/wifi/ดาวเทียม</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เย็น + พัดลม</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ไมโครเวฟ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ เครื่องทำน้ำอุ่น</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดโต๊ะรับประทานอาหาร</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยชามเซรามิก</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยกาแฟ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เสื้อผ้าขนาดใหญ่</div>
+            </div>
+            <button class="btn btn-green" onclick="showBookingForm()" style="width:100%;justify-content:center;padding:10px;">🛏️ จองห้องนี้</button>
+          </div>
+        </div>
+
+        <!-- STANDARD ROOM -->
+        <div style="background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.07);transition:.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 32px rgba(0,0,0,.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.07)'">
+          <div style="position:relative;">
+            <img src="https://natapatc.github.io/hospital-booking/Standard.jpg" alt="Standard Room" style="width:100%;height:220px;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+            <div style="display:none;width:100%;height:220px;background:linear-gradient(135deg,#10b981,#059669);align-items:center;justify-content:center;font-size:64px;">🛏️</div>
+            <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.6);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">STANDARD</div>
+          </div>
+          <div style="padding:18px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <h3 style="font-size:18px;font-weight:700;color:#1e293b;">Standard Room</h3>
+              <span style="background:#dcfce7;color:#14532d;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700;">1,800 บาท/คืน</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:12px;">
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ขนาดห้อง 32 ตร.ม.</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ เครื่องปรับอากาศ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ โทรทัศน์/wifi/ดาวเทียม</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เย็น + พัดลม</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ไมโครเวฟ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ เครื่องทำน้ำอุ่น</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดโต๊ะรับประทานอาหาร</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยชามเซรามิก</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยกาแฟ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เสื้อผ้าขนาดใหญ่</div>
+            </div>
+            <button class="btn btn-green" onclick="showBookingForm()" style="width:100%;justify-content:center;padding:10px;">🛏️ จองห้องนี้</button>
+          </div>
+        </div>
+
+        <!-- WARD ROOM -->
+        <div style="background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.07);transition:.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 32px rgba(0,0,0,.12)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(0,0,0,.07)'">
+          <div style="position:relative;">
+            <img src="https://natapatc.github.io/hospital-booking/ward.jpg" alt="Ward Room" style="width:100%;height:220px;object-fit:cover;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+            <div style="display:none;width:100%;height:220px;background:linear-gradient(135deg,#16a34a,#15803d);align-items:center;justify-content:center;font-size:64px;">🏥</div>
+            <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.6);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;">WARD</div>
+          </div>
+          <div style="padding:18px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <h3 style="font-size:18px;font-weight:700;color:#1e293b;">Ward Room</h3>
+              <span style="background:#dcfce7;color:#14532d;padding:4px 12px;border-radius:20px;font-size:13px;font-weight:700;">1,000 บาท/คืน</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:12px;">
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ขนาดห้อง 20 ตร.ม.</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ เครื่องปรับอากาศ</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ โทรทัศน์/จานดาวเทียม</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เย็น</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ เครื่องทำน้ำอุ่น</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดโต๊ะรับประทานอาหาร</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยชาม</div>
+              <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เสื้อผ้าขนาดเล็ก</div>
+            </div>
+            <button class="btn btn-green" onclick="showBookingForm()" style="width:100%;justify-content:center;padding:10px;">🛏️ จองห้องนี้</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer Info -->
+      <div style="background:linear-gradient(135deg,#1d4ed8,#0ea5e9);border-radius:16px;padding:24px;color:#fff;text-align:center;">
+        <div style="font-size:16px;font-weight:700;margin-bottom:10px;">📋 ข้อมูลสำคัญ</div>
+        <p style="font-size:14px;line-height:1.8;margin-bottom:12px;opacity:.95;">
+          สามารถใช้สิทธิสวัสดิการตามเงื่อนไขที่รัฐบาลกำหนดได้
+        </p>
+        <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:14px;display:inline-block;">
+          <div style="font-size:14px;font-weight:600;margin-bottom:4px;">📞 ศูนย์จองห้องพิเศษ</div>
+          <div style="font-size:16px;font-weight:700;">043-761330 ต่อ 105, 104, 108</div>
+        </div>
+        <div style="margin-top:16px;">
+          <button class="btn" onclick="showBookingForm()" style="background:#fff;color:#1d4ed8;font-weight:700;padding:12px 32px;font-size:15px;border-radius:12px;">
+            🛏️ จองห้องพิเศษเลย
+          </button>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -291,7 +456,7 @@
           <table>
             <thead><tr>
               <th>รหัส</th><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th>
-              <th>Ward ที่ต้องการ</th><th>คิวที่</th><th>วันที่ต้องการ</th>
+              <th>ประเภทห้อง</th><th>สถานะผู้ป่วย</th><th>คิวที่</th><th>วันที่ต้องการ</th>
               <th>ห้องที่จัดให้</th><th>ส่งคำขอ</th><th>สถานะ</th><th>จัดการ</th>
             </tr></thead>
             <tbody id="queueBody"></tbody>
@@ -320,12 +485,11 @@
         <div>
           <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px;">Ward</label>
           <select id="rptWard" style="padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;">
-            <option value="">ทุก Ward</option>
-            <option value="VIP">Ward ศิริโกสุม</option>
-            <option value="สงฆ์">Ward สงฆ์</option>
-            <option value="เด็ก">Ward เด็ก</option>
-            <option value="หญิง">Ward หญิง</option>
-            <option value="ชาย">Ward ชาย</option>
+            <option value="">ทุกประเภท</option>
+            <option value="Deluxe">Deluxe Room</option>
+            <option value="Superior">Superior Room</option>
+            <option value="Standard">Standard Room</option>
+            <option value="Ward">Ward Room</option>
           </select>
         </div>
         <div>
@@ -433,10 +597,20 @@
     </div>
     <div class="form-row">
       <div class="form-group">
+        <label>สถานะผู้ป่วย</label>
+        <select id="editPatientStatus">
+          <option value="">-- เลือกสถานะ --</option>
+          <option value="นอนรักษาอยู่ รพ.">🏥 นอนรักษาอยู่ รพ.</option>
+          <option value="อยู่ที่บ้าน">🏠 อยู่ที่บ้าน</option>
+        </select>
+      </div>
+      <div class="form-group">
         <label>วันที่ต้องการเข้าพัก</label>
         <input id="editDate" type="date"/>
       </div>
-      <div class="form-group">
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="grid-column:1/-1">
         <label>สถานะ</label>
         <select id="editStatus">
           <option value="pending">รอดำเนินการ</option>
@@ -644,6 +818,11 @@ function showBookingForm(){
 }
 window.showBookingForm=showBookingForm;
 
+function showRoomDetail(){
+  hide('userHome','userBooking','userRoomStatus');show('userRoomDetail');
+}
+window.showRoomDetail=showRoomDetail;
+
 function showRoomStatus(){
   hide('userHome','userBooking');show('userRoomStatus');
   let html='';for(let k in WARD_DEF)html+=renderWardBlock(k,false);
@@ -739,12 +918,12 @@ async function generateBkId(){
 
 // ===== SUBMIT BOOKING (Firestore) =====
 async function submitRequest(){
-  const name=$('uName').value.trim(),phone=$('uPhone').value.trim(),ward=$('uWard').value,date=$('uDate').value,note=$('uNote').value.trim();
-  if(!name||!phone||!ward){toast('⚠️ กรุณากรอกชื่อ เบอร์โทร และ Ward');return;}
+  const name=$('uName').value.trim(),phone=$('uPhone').value.trim(),ward=$('uWard').value,date=$('uDate').value,note=$('uNote').value.trim(),patientStatus=$('uPatientStatus').value;
+  if(!name||!phone||!ward||!patientStatus){toast('⚠️ กรุณากรอกข้อมูลที่จำเป็นให้ครบ');return;}
   const queueNum=bookings.filter(b=>b.status==='pending'||b.status==='approved').length+1;
   try{
     await addDoc(collection(db,'bookings'),{
-      patientName:name,phone,ward,date,note,
+      patientName:name,phone,ward,date,note,patientStatus,
       queueNum,status:'pending',assignedRoom:null,adminNote:'',
       submittedAt:serverTimestamp()
     });
@@ -801,6 +980,7 @@ function renderQueue(){
       <td><b>${b.patientName}</b></td>
       <td>${b.phone}</td>
       <td><span style="background:var(--purple-light);color:var(--purple-dark);padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600">${b.ward}</span></td>
+      <td><span style="background:${b.patientStatus==='นอนรักษาอยู่ รพ.'?'#fee2e2':'#dcfce7'};color:${b.patientStatus==='นอนรักษาอยู่ รพ.'?'#7f1d1d':'#14532d'};padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600">${b.patientStatus==='นอนรักษาอยู่ รพ.'?'🏥 นอนรักษาอยู่':b.patientStatus==='อยู่ที่บ้าน'?'🏠 อยู่ที่บ้าน':'-'}</span></td>
       <td style="text-align:center"><span style="background:#f0f9ff;color:#0369a1;padding:3px 10px;border-radius:20px;font-size:13px;font-weight:700">#${b.queueNum||'-'}</span></td>
       <td style="font-size:12px;color:var(--muted)">${b.date||'-'}</td>
       <td>${b.assignedRoom?`<b style="color:var(--green-dark)">${b.assignedRoom}</b>`:'<span style="color:var(--muted);font-size:12px">ยังไม่จัด</span>'}</td>
@@ -830,6 +1010,7 @@ function openEdit(fid){
   $('editNote').value=b.note||'';
   $('editAdminNote').value=b.adminNote||'';
   $('editStatus').value=b.status;
+  $('editPatientStatus').value=b.patientStatus||'';
   $('editModal').classList.add('open');
 }
 window.openEdit=openEdit;
@@ -845,7 +1026,8 @@ async function saveEdit(){
       date:$('editDate').value,
       note:$('editNote').value,
       adminNote:$('editAdminNote').value,
-      status:$('editStatus').value
+      status:$('editStatus').value,
+      patientStatus:$('editPatientStatus').value
     });
     closeModal('editModal');
     toast('✅ บันทึกการแก้ไขแล้ว');
