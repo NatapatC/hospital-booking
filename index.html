@@ -314,7 +314,7 @@
               <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยกาแฟ</div>
               <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เสื้อผ้าขนาดใหญ่</div>
             </div>
-            <button class="btn btn-green" onclick="showBookingForm()" style="width:100%;justify-content:center;padding:10px;">🛏️ จองห้องนี้</button>
+            <button class="btn btn-green" onclick="bookRoomType('Deluxe')" style="width:100%;justify-content:center;padding:11px;font-size:14px;margin-top:4px;">🛏️ จองห้องนี้</button>
           </div>
         </div>
 
@@ -344,7 +344,7 @@
               <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยกาแฟ</div>
               <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เสื้อผ้าขนาดใหญ่</div>
             </div>
-            <button class="btn btn-green" onclick="showBookingForm()" style="width:100%;justify-content:center;padding:10px;">🛏️ จองห้องนี้</button>
+            <button class="btn btn-green" onclick="bookRoomType('Superior')" style="width:100%;justify-content:center;padding:11px;font-size:14px;margin-top:4px;">🛏️ จองห้องนี้</button>
           </div>
         </div>
 
@@ -372,7 +372,7 @@
               <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยกาแฟ</div>
               <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เสื้อผ้าขนาดใหญ่</div>
             </div>
-            <button class="btn btn-green" onclick="showBookingForm()" style="width:100%;justify-content:center;padding:10px;">🛏️ จองห้องนี้</button>
+            <button class="btn btn-green" onclick="bookRoomType('Standard')" style="width:100%;justify-content:center;padding:11px;font-size:14px;margin-top:4px;">🛏️ จองห้องนี้</button>
           </div>
         </div>
 
@@ -398,7 +398,7 @@
               <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ชุดถ้วยชาม</div>
               <div style="font-size:13px;color:#374151;padding:3px 0;">✅ ตู้เสื้อผ้าขนาดเล็ก</div>
             </div>
-            <button class="btn btn-green" onclick="showBookingForm()" style="width:100%;justify-content:center;padding:10px;">🛏️ จองห้องนี้</button>
+            <button class="btn btn-green" onclick="bookRoomType('Ward')" style="width:100%;justify-content:center;padding:11px;font-size:14px;margin-top:4px;">🛏️ จองห้องนี้</button>
           </div>
         </div>
 
@@ -818,6 +818,16 @@ function showBookingForm(){
 }
 window.showBookingForm=showBookingForm;
 
+function bookRoomType(roomType){
+  // เซ็ตค่า dropdown ประเภทห้องในฟอร์ม
+  showBookingForm();
+  setTimeout(()=>{
+    const sel = document.getElementById('uWard');
+    if(sel) sel.value = roomType;
+  }, 100);
+}
+window.bookRoomType=bookRoomType;
+
 function showRoomDetail(){
   hide('userHome','userBooking','userRoomStatus');show('userRoomDetail');
 }
@@ -973,8 +983,9 @@ function renderAdminRooms(){
 
 function renderQueue(){
   const tbody=$('queueBody');
-  if(!bookings.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px">ยังไม่มีรายการ</td></tr>';return;}
-  tbody.innerHTML=bookings.map((b)=>`
+  if(!bookings.filter(b=>b.status!=='discharged').length){tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:28px">ยังไม่มีรายการ</td></tr>';return;}
+  const displayBookings = bookings.filter(b => b.status !== 'discharged');
+  tbody.innerHTML=displayBookings.map((b)=>`
     <tr style="${b.status==='cancelled'?'opacity:.5':''}">
       <td style="font-size:12px;font-weight:600;color:#0369a1">${b.bkId||b.firestoreId.slice(0,8)}</td>
       <td><b>${b.patientName}</b></td>
