@@ -455,7 +455,7 @@
         <div style="overflow-x:auto">
           <table>
             <thead><tr>
-              <th>รหัส</th><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th>
+              <th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th>
               <th>ประเภทห้อง</th><th>สถานะผู้ป่วย</th><th>คิวที่</th><th>วันที่ต้องการ</th>
               <th>ห้องที่จัดให้</th><th>ส่งคำขอ</th><th>สถานะ</th><th>จัดการ</th>
             </tr></thead>
@@ -534,7 +534,7 @@
         <div style="overflow-x:auto">
           <table>
             <thead><tr>
-              <th>รหัส</th><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th>
+              <th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th>
               <th>Ward</th><th>ห้องที่จัดให้</th><th>คิวที่</th>
               <th>วันที่ต้องการ</th><th>วันที่ส่งคำขอ</th><th>สถานะ</th>
             </tr></thead>
@@ -841,14 +841,25 @@ function showRoomStatus(){
 window.showRoomStatus=showRoomStatus;
 
 // ===== RENDER =====
+function getRoomPatient(roomId){
+  // หาผู้ป่วยที่จองห้องนี้อยู่ (status approved หรือ reserved)
+  const b = bookings.find(b => b.assignedRoom === roomId && (b.status === 'approved' || b.status === 'pending'));
+  return b ? b.patientName : null;
+}
+
 function renderCard(room,isAdm){
   const cls=roomCls(room.status);
   const ac=isAdm?' admin-room':'';
   const oc=isAdm?`onclick="adminClickRoom('${room.id}')"`:' ';
+  const patient = isAdm ? getRoomPatient(room.id) : null;
+  const patientHtml = patient
+    ? `<div style="font-size:9px;font-weight:700;color:#1e40af;background:#dbeafe;border-radius:6px;padding:2px 4px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:80px;" title="${patient}">👤 ${patient}</div>`
+    : '';
   return `<div class="room-card ${cls}${ac}" ${oc} title="${room.note||''}">
     <div class="room-num">${room.name}</div>
     <div class="room-type">${room.type}</div>
     <div class="room-status">${statusLabel(room.status)}</div>
+    ${patientHtml}
   </div>`;
 }
 
@@ -943,7 +954,7 @@ async function submitRequest(){
       `🔔 มีคำขอจองห้องพิเศษใหม่!\n` +
       `👤 ผู้ป่วย: ${name}\n` +
       `📞 เบอร์: ${phone}\n` +
-      `🏥 ห้อง: ${ward}\n` +
+      `🏥 Ward: ${ward}\n` +
       `📋 คิวที่: #${queueNum}\n` +
       `📅 วันที่ต้องการ: ${date||'ไม่ระบุ'}\n` +
       `📝 หมายเหตุ: ${note||'-'}\n` +
@@ -983,11 +994,10 @@ function renderAdminRooms(){
 
 function renderQueue(){
   const tbody=$('queueBody');
-  if(!bookings.filter(b=>b.status!=='discharged').length){tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:var(--muted);padding:28px">ยังไม่มีรายการ</td></tr>';return;}
+  if(!bookings.filter(b=>b.status!=='discharged').length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px">ยังไม่มีรายการ</td></tr>';return;}
   const displayBookings = bookings.filter(b => b.status !== 'discharged');
   tbody.innerHTML=displayBookings.map((b)=>`
     <tr style="${b.status==='cancelled'?'opacity:.5':''}">
-      <td style="font-size:12px;font-weight:600;color:#0369a1">${b.bkId||b.firestoreId.slice(0,8)}</td>
       <td><b>${b.patientName}</b></td>
       <td>${b.phone}</td>
       <td><span style="background:var(--purple-light);color:var(--purple-dark);padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600">${b.ward}</span></td>
@@ -1203,7 +1213,6 @@ function renderRptTable(data){
   const statusBadge={pending:'b-pending',approved:'b-approved',discharged:'','cancelled':'b-cancelled'};
   tbody.innerHTML=data.map(b=>`
     <tr>
-      <td style="font-size:12px;font-weight:600;color:#0369a1">${b.bkId||b.firestoreId?.slice(0,8)||'-'}</td>
       <td><b>${b.patientName}</b></td>
       <td>${b.phone}</td>
       <td><span style="background:var(--purple-light);color:var(--purple-dark);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600">${b.ward}</span></td>
@@ -1301,7 +1310,7 @@ function exportPDF(){
   const date=new Date().toLocaleDateString('th-TH');
   const rows=data.map(b=>`
     <tr>
-      <td>${b.bkId||b.firestoreId?.slice(0,8)||'-'}</td>
+
       <td>${b.patientName}</td>
       <td>${b.phone}</td>
       <td>${b.ward==='VIP'?'ศิริโกสุม':b.ward}</td>
@@ -1326,7 +1335,7 @@ function exportPDF(){
     <h2>รายงานการใช้ห้องพิเศษ โรงพยาบาลโกสุมพิสัย</h2>
     <p>วันที่พิมพ์: ${date} | จำนวน ${data.length} รายการ</p>
     <table>
-      <thead><tr><th>รหัส</th><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th><th>Ward</th><th>ห้อง</th><th>วันที่ต้องการ</th><th>สถานะ</th></tr></thead>
+      <thead><tr><th>ชื่อ-นามสกุล</th><th>เบอร์โทร</th><th>Ward</th><th>ห้อง</th><th>วันที่ต้องการ</th><th>สถานะ</th></tr></thead>
       <tbody>${rows}</tbody>
     </table>
     <script>window.onload=()=>{window.print();}<\/script>
