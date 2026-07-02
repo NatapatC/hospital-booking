@@ -954,7 +954,7 @@ async function submitRequest(){
       `🔔 มีคำขอจองห้องพิเศษใหม่!\n` +
       `👤 ผู้ป่วย: ${name}\n` +
       `📞 เบอร์: ${phone}\n` +
-      `🏥 ห้อง: ${ward}\n` +
+      `🏥 Ward: ${ward}\n` +
       `📋 คิวที่: #${queueNum}\n` +
       `📅 วันที่ต้องการ: ${date||'ไม่ระบุ'}\n` +
       `📝 หมายเหตุ: ${note||'-'}\n` +
@@ -994,8 +994,8 @@ function renderAdminRooms(){
 
 function renderQueue(){
   const tbody=$('queueBody');
-  if(!bookings.filter(b=>b.status!=='discharged').length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px">ยังไม่มีรายการ</td></tr>';return;}
-  const displayBookings = bookings.filter(b => b.status !== 'discharged');
+  const displayBookings = bookings.filter(b => b.status === 'pending' || b.status === 'approved');
+  if(!displayBookings.length){tbody.innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--muted);padding:28px">ยังไม่มีรายการ</td></tr>';return;}
   tbody.innerHTML=displayBookings.map((b)=>`
     <tr style="${b.status==='cancelled'?'opacity:.5':''}">
       <td><b>${b.patientName}</b></td>
